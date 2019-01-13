@@ -84,19 +84,19 @@ boolean Adafruit_SHT31::readTempHum(void) {
   ST <<= 8;
   ST |= readbuffer[1];
 
-#ifdef SHT31_USE_CRC
+#ifndef SHT31_NO_CRC
   if (readbuffer[2] != crc8(readbuffer, 2))
     return false;
-#endif // SHT31_USE_CRC
+#endif // SHT31_NO_CRC
   
   SRH = readbuffer[3];
   SRH <<= 8;
   SRH |= readbuffer[4];
 
-#ifdef SHT31_USE_CRC
+#ifndef SHT31_NO_CRC
   if (readbuffer[5] != crc8(readbuffer + 3, 2))
     return false;
-#endif // SHT31_USE_CRC
+#endif // SHT31_NO_CRC
 
   // Serial.print("ST = "); Serial.println(ST);
   float stemp = ST;
@@ -122,7 +122,7 @@ void Adafruit_SHT31::writeCommand(uint16_t cmd) {
   Wire.endTransmission();
 }
 
-#ifdef SHT31_USE_CRC
+#ifndef SHT31_NO_CRC
 uint8_t Adafruit_SHT31::crc8(const uint8_t *data, int len) {
   /*
    *
@@ -147,4 +147,4 @@ uint8_t Adafruit_SHT31::crc8(const uint8_t *data, int len) {
   }
   return crc;
 }
-#endif // SHT31_USE_CRC
+#endif // SHT31_NO_CRC
