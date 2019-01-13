@@ -19,6 +19,8 @@
 #include "Arduino.h"
 #include "Wire.h"
 
+//#define SHT31_NO_CRC
+
 #define SHT31_DEFAULT_ADDR         0x44
 #define SHT31_MEAS_HIGHREP_STRETCH 0x2C06
 #define SHT31_MEAS_MEDREP_STRETCH  0x2C0D
@@ -84,16 +86,6 @@ class Adafruit_SHT31 {
          */
         void heater(boolean h);
 
-        /**
-         * Performs a CRC8 calculation on the supplied values.
-         *
-         * @param data  Pointer to the data to use when calculating the CRC8.
-         * @param len   The number of bytes in 'data'.
-         *
-         * @return The computed CRC8 value.
-         */
-        uint8_t crc8(const uint8_t *data, int len);
-
     private:
         /**
          * Placeholder to track the I2C address.
@@ -130,6 +122,18 @@ class Adafruit_SHT31 {
          * @return True if successful, otherwise False.
          */
         boolean  readData(void);
+
+#ifndef SHT31_NO_CRC
+        /**
+         * Performs a CRC8 calculation on the supplied values.
+         *
+         * @param data  Pointer to the data to use when calculating the CRC8.
+         * @param len   The number of bytes in 'data'.
+         *
+         * @return The computed CRC8 value.
+         */
+        uint8_t crc8(const uint8_t *data, int len);
+#endif // SHT31_NO_CRC
 };
 
 #endif
