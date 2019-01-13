@@ -41,7 +41,7 @@ uint16_t Adafruit_SHT31::readStatus(void) {
 
 void Adafruit_SHT31::reset(void) {
   writeCommand(SHT31_SOFTRESET);
-  delay(10);
+  delay(2); // Datasheet specifies 1.5ms max soft-reset delay
 }
 
 void Adafruit_SHT31::heater(boolean h) {
@@ -70,7 +70,7 @@ boolean Adafruit_SHT31::readTempHum(void) {
 
   writeCommand(SHT31_MEAS_HIGHREP);
 
-  delay(20);
+  delay(16); // Max delay for high rep is 15ms (from datasheet)
   Wire.requestFrom(_i2caddr, (uint8_t)6);
   if (Wire.available() != 6)
     return false;
@@ -84,27 +84,31 @@ boolean Adafruit_SHT31::readTempHum(void) {
   ST <<= 8;
   ST |= readbuffer[1];
 
+#ifdef SHT31_USE_CRC
   if (readbuffer[2] != crc8(readbuffer, 2))
     return false;
-
+#endif // SHT31_USE_CRC
+  
   SRH = readbuffer[3];
   SRH <<= 8;
   SRH |= readbuffer[4];
 
+#ifdef SHT31_USE_CRC
   if (readbuffer[5] != crc8(readbuffer + 3, 2))
     return false;
+#endif // SHT31_USE_CRC
 
   // Serial.print("ST = "); Serial.println(ST);
-  double stemp = ST;
-  stemp *= 175;
-  stemp /= 0xffff;
-  stemp = -45 + stemp;
+  float stemp = ST;
+  stemp *= 175.0f;
+  stemp /= 65535.0f;
+  stemp -= 45.0f;
   temp = stemp;
 
   //  Serial.print("SRH = "); Serial.println(SRH);
-  double shum = SRH;
-  shum *= 100;
-  shum /= 0xFFFF;
+  float shum = SRH;
+  shum *= 100.0f;
+  shum /= 65535.0f;
 
   humidity = shum;
 
@@ -118,6 +122,7 @@ void Adafruit_SHT31::writeCommand(uint16_t cmd) {
   Wire.endTransmission();
 }
 
+#ifdef SHT31_USE_CRC
 uint8_t Adafruit_SHT31::crc8(const uint8_t *data, int len) {
   /*
    *
@@ -142,3 +147,4 @@ uint8_t Adafruit_SHT31::crc8(const uint8_t *data, int len) {
   }
   return crc;
 }
+#endif // SHT31_USE_CRC
